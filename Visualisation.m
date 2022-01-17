@@ -6,7 +6,7 @@
 %% Initialization
 clear ; close all; clc
 % Enter the filename ending in _clean!
-filename = '98F4AB08E738-FastStreamStored-ID4809-2022-01-06 155331_clean';
+filename = '246F2843D948-FastStreamStored-ID2023-2021-11-30 095135_clean';
 % Sampling frequency (Adapt this to the frequency the data was gathered at)
 Fs = 2048
 

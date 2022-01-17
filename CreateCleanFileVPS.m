@@ -1,5 +1,5 @@
 %% Erasmus project - CreateCleanFileVPS
-% Here data can be loaded from a .csv file retrieved with VPS software
+% Here data can be loaded from a .csv file fastStream retrieved with VPS software
 % Subsequently, the data is prepared for visualisation and written to a
 % new, clean .csv file
 
@@ -7,16 +7,18 @@
 clear ; close all; clc
 % currentFactor = 0.010989 %same as previous sensor
 % vibrFactor = 6.8439e-06 %0.000007900599(previous)
-filepath = '98F4AB08E738/2021_12_14/';
-filename = '98F4AB08E738-FastStreamStored-ID2492-2021-12-14 045858';
+% filepath = './VPS_Software/98F4AB08E738/2021_12_14/';
+% filename = '98F4AB08E738-FastStreamStored-ID2492-2021-12-14 045858';
+filepath = './VPS_Software/246F2843D948/';
+filename = '246F2843D948-FastStreamStored-ID2023-2021-11-30 095135';
 % Choose to apply a low pass filter or not
-applyLPF = true
+applyLPF = false
 
 %% =========== Part 1: Loading Data =============
 % We start by loading the data
 
 % Read data
-data = readtable(strcat('./VPS_Software/',filepath,filename,'.csv'), 'TextType','string');
+data = readtable(strcat(filepath,filename,'.csv'), 'TextType','string');
 
 %Only keep necessary columns
 clean_data = table(data.UnixTimestamp_us_,data.Current,data.Vibration);
