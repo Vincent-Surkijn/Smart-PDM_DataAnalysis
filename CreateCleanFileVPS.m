@@ -7,10 +7,8 @@
 clear ; close all; clc
 % currentFactor = 0.010989 %same as previous sensor
 % vibrFactor = 6.8439e-06 %0.000007900599(previous)
-% filepath = './VPS_Software/98F4AB08E738/2021_12_14/';
-% filename = '98F4AB08E738-FastStreamStored-ID2492-2021-12-14 045858';
-filepath = './VPS_Software/246F2843D948/';
-filename = '246F2843D948-FastStreamStored-ID2023-2021-11-30 095135';
+filepath = 'VPS_Software\240AC4514170\20_01_2022\';
+filename = '240AC4514170-FastStreamStored-ID7679-2022-01-20 175418';
 % Choose to apply a low pass filter or not
 applyLPF = false
 

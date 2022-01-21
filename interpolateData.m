@@ -8,7 +8,7 @@
 %% Initialization
 clear ;
 % Enter the filename ending in _clean!
-filename = '25_10 - 31_10';
+filename = '21_10_25 - 21_10_31';
 
 % Read data
 data = readtable(strcat('VPS_Software\98F4AB08E738\Slowstreams\',filename,'.csv'), 'TextType','string');
@@ -84,10 +84,13 @@ while(max(diff(interpolatedData{:,"Date"}))>hours(1))
 end
 
 figure();
-sp(1) = subplot(2,1,1); plot(interpolatedData{:,"Date"},interpolatedData{:,"ActivePower"}); title('Current');
+sp(1) = subplot(2,1,1); plot(interpolatedData{:,"Date"},interpolatedData{:,"ActivePower"}); title('Interpolated Active Power');
 sp(2) = subplot(2,1,2); plot(data{:,"Date"},data{:,"ActivePower"}); title('Active power');
 % Link axes so zooming in is synced on both plots
 linkaxes(sp, 'x');
+
+fprintf('pause2')
+pause;
 
 l = size(interpolatedData);
 k = 1;
@@ -117,6 +120,8 @@ end
 % figure;
 % plot(data{:,"Date"});
 
+fprintf('pause2')
+pause;
 %% Interpolate small missing data chunks
 filled = fillmissing(interpolatedData{:,"ActivePower"},'makima','SamplePoints',interpolatedData{:,"Date"});
 

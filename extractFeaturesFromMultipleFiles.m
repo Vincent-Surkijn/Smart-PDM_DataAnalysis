@@ -1,15 +1,14 @@
 %% Erasmus project - extractFeaturesFromMultipleFiles
-% This script takes all csv files in a folder, extracts features from them
+% This script takes all slow stream csv files in a folder, extracts features from them
 % and writes these features to another csv file(csvpath)
 
 %% Main
 % clear; clc;
 % Enter the path to the folder followed by \*.csv (has to be between '')
-%folder = '.\VPS_Software\98F4AB08E738\Slowstreams\Feature Extraction\*.csv'
-folder = '.\VPS_Software\98F4AB08E738\Slowstreams\Multi_visualisation\*.csv'
+folder = '.\VPS_Software\240AC4514170\Slowstreams\Feature extraction\*.csv'
 
 % Enter the path to the file where the features will be written to
-csvpath = ".\VPS_Software\98F4AB08E738\featuresV2";
+csvpath = ".\VPS_Software\240AC4514170\featuresV2";
 
 files = subdir(folder);
 
@@ -32,9 +31,6 @@ end
 
 % Sort data by time first
 data = sortrows(data,2,"ascend");
-
-fprintf("pause");
-pause;
 
 % Extract features
 fprintf("Extracting features...\n");

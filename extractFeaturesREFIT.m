@@ -1,5 +1,5 @@
-function features = extractFeaturesSlowstream(data,csvpath)
-% extractFeaturesSlowstream(data) extracts features from a slowstream file
+function features = extractFeaturesREFIT(data,csvpath)
+% extractFeaturesREFIT(data) extracts features from a REFIT file
 % and writes them to a .csv file if a csvpath is specified
 % If the .csv file already exists the features will be appended to the file
 %
@@ -55,8 +55,8 @@ dates(1) = currentDate;          % Save dates
 
 % Determine at what index to start(don't want to start in the middle of an
 % on/off cycle)
-% If the power is greater than 30 then the file starts in the middle of an on cycle
-if(data{i,"ActivePower"}>30)
+% If the power is greater than 70 then the file starts in the middle of an on cycle
+if(data{i,"ActivePower"}>70)
     fprintf("File starts in the middle of an on cycle.\n");
     % Jump to the end of the cycle
     i = i + find(data{i:l,"ActivePower"}==0, 1, 'first');
@@ -87,8 +87,8 @@ while(i<l+1)
         dates(end+1) = currentDate;
     end
 
-    % If the power is greater than 30 then it is an on cycle
-    if(data{i,"ActivePower"}>30)
+    % If the power is greater than 70 then it is an on cycle
+    if(data{i,"ActivePower"}>70)
         % Increment the amount of on cycles of this day
         onCycles(end) = onCycles(end) + 1;
         % If the cycle occured between 22h and 8h: it was at night
@@ -107,7 +107,11 @@ while(i<l+1)
             i = i + find(data{i:l,"ActivePower"}==0, 1, 'first');
             % Prevent single 0 to be detected as off cycle
             if(data{i+1,"ActivePower"}==0)
-                found = true;
+                %TODO: improve
+                % Cycle needs to be larger than 20min
+                if(etime(datevec(data{i,"Date"}),datevec(data{idxStartOn,"Date"}))>20*60)
+                    found = true;
+                end
             end
             % Do not record the cycle's duration if it does not end before the end of the data
             % find() returns empty if it does not find a result
@@ -131,8 +135,8 @@ while(i<l+1)
     else
         % Save start index of off cycle
         idxStartOff = i;
-        % Jump to next on cycle (greater than 30 to prevent noise detection)
-        i = i + find(data{i:l,"ActivePower"}>30, 1, 'first');
+        % Jump to next on cycle (greater than 70 to prevent noise detection)
+        i = i + find(data{i:l,"ActivePower"}>70, 1, 'first');
         % Do not record the cycle's duration if it does not end before the end of the data
         % find() returns empty if it does not find a result
         if(isempty(i))

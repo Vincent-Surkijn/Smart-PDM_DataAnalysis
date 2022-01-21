@@ -6,13 +6,14 @@
 %% Initialization
 clear ; close all; clc
 % Enter the filename ending in _clean!
-filename = '21_12_ 6 - 21_12_12';
+filename = '21_12_20 - 21_12_26';
+filepath = 'VPS_Software\240AC4514170\Slowstreams\';
 
 %% =========== Part 1: Loading Data =============
 % We start by loading the data
 
 % Read data
-data = readtable(strcat('VPS_Software\98F4AB08E738\Slowstreams\',filename,'.csv'), 'TextType','string');
+data = readtable(strcat(filepath,filename,'.csv'), 'TextType','string');
 
 % Sort data by time first
 data = sortrows(data,"Date","ascend");

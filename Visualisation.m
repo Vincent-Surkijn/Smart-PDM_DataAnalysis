@@ -6,7 +6,7 @@
 %% Initialization
 clear ; close all; clc
 % Enter the filename ending in _clean!
-filename = '246F2843D948-FastStreamStored-ID2023-2021-11-30 095135_clean';
+filename = '240AC4514170-FastStreamStored-ID7679-2022-01-20 175418_clean';
 % Sampling frequency (Adapt this to the frequency the data was gathered at)
 Fs = 2048
 
@@ -18,7 +18,8 @@ data = readtable(strcat('./MATLAB_files/',filename,'.csv'), 'TextType','string')
 %data = readtable(strcat('./Files/',filename,'.csv'), 'TextType','string');
 
 % Sort by time
-data = sortrows(data,"Unix",'descend');
+%data = sortrows(data,"Unix",'descend');
+data = sortrows(data,"Instance",'descend');
 
 %% =========== Part 2: Visualising Data =============
 
@@ -41,6 +42,10 @@ fprintf('Plotting time series.\n');
 figure(2)
 sp(1) = subplot(2,1,1);plot(flip(data{:,"Instance"}),datenum(flip(data{:,"Current"})));title('Current vs time');ylabel('Current (A)');xlabel('Time'); axis tight
 sp(2) = subplot(2,1,2);plot(flip(data{:,"Instance"}),datenum(flip(data{:,"Vibration"})));title('Vibrations vs time');ylabel('Vibration');xlabel('Time'); axis tight
+
+%file_Tiago
+% sp(1) = subplot(2,1,1);plot(flip(data{:,"DateTimeStamp"}),datenum(flip(data{:,"Current"})));title('Current vs time');ylabel('Current (A)');xlabel('Time'); axis tight
+% sp(2) = subplot(2,1,2);plot(flip(data{:,"DateTimeStamp"}),datenum(flip(data{:,"Vibration"})));title('Vibrations vs time');ylabel('Vibration');xlabel('Time'); axis tight
 
 % Link axes so zooming in is synced on both plots
 linkaxes(sp, 'x');
@@ -180,9 +185,17 @@ xlabel('Frequency (Hz)')
 ylabel('Power')
 
 %Current
+%file_Tiago
+% Subtract the average vibration to reduce the DC component
+avgCurrent = mean(data{:,"Current"});
+data{:,"Current"} = data{:,"Current"} - avgCurrent;
+
 % Select what part of the data to use
 x = flip(data{:,"Current"});
-% x = flip(data{650000:1750000,"Current"});  % On cycle (29NOV)
+% x = flip(data{56000:56400,"Current"});  % Small peak at start On cycle (file_Tiago)
+% x = flip(data{55000:55800,"Current"});  % 1st part On cycle (file_Tiago)
+% x = flip(data{20000:30000,"Current"});  % 2nd part On cycle (file_Tiago)
+% x = flip(data{80000:100000,"Current"});  % Off cycle (file_Tiago)
 
 Y = fft(x);
 Y2 = Y;
