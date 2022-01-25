@@ -136,6 +136,11 @@ while(i<l+1)
         idxStartOff = i;
         % Jump to next on cycle (greater than 70 to prevent noise detection)
         i = i + find(data{i:l,"ActivePower"}>70, 1, 'first');
+        % Do not record the cycle's duration if it does not end before the end of the data
+        % find() returns empty if it does not find a result
+        if(isempty(i))
+                break;
+        end
         % Calculate time of off cycle
         timeOff = etime(datevec(data{i,"Date"}),datevec(data{idxStartOff,"Date"}));
         % Append length to vector (row=1day;column=1st cycle)

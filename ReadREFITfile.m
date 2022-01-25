@@ -25,9 +25,9 @@ title('Power vs time');ylabel('Power(W)');xlabel('Date');
 fprintf('Press any key to extract features from this REFIT file\n');
 pause;
 %% Feature extraction
-csvpath = "./Refit_files/features"
-features = extractFeaturesREFIT(clean_data(1:1000000,:),csvpath);
-% features = extractFeaturesREFIT(clean_data,csvpath);
+csvpath = strcat("./Refit_files/features_",filename);
+% features = extractFeaturesREFIT(clean_data(1:1000000,:),csvpath);
+features = extractFeaturesREFIT(clean_data,csvpath);
 
 fprintf('Press any key to compare indices of findpeaks and own method\n');
 pause;
