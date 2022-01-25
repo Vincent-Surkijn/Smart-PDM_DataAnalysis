@@ -1,4 +1,4 @@
-function features = extractFeaturesREFIT(data,csvpath)
+function [features,indices] = extractFeaturesREFIT(data,csvpath)
 % extractFeaturesREFIT(data) extracts features from a REFIT file
 % and writes them to a .csv file if a csvpath is specified
 % If the .csv file already exists the features will be appended to the file
@@ -19,8 +19,8 @@ function features = extractFeaturesREFIT(data,csvpath)
 %
 
 % To check amount of peaks quickly:
-% Plot: findpeaks(data{:,"Current"},'MinPeakHeight',0.35,'MinPeakDistance',3000)
-% [~,LOCS] = findpeaks(data{:,"Current"},'MinPeakHeight',0.35,'MinPeakDistance',3000);
+% Plot: findpeaks(clean_data{:,"ActivePower"},'MinPeakHeight',70,'MinPeakDistance',500)
+% [~,LOCS] = findpeaks(clean_data{:,"ActivePower"},'MinPeakHeight',70,'MinPeakDistance',500);
 %   --> LOCS contains indices of all the peaks so length(LOCS) will return
 %   the amount of peaks
 
@@ -59,16 +59,16 @@ dates(1) = currentDate;          % Save dates
 if(data{i,"ActivePower"}>70)
     fprintf("File starts in the middle of an on cycle.\n");
     % Jump to the end of the cycle
-    i = i + find(data{i:l,"ActivePower"}==0, 1, 'first');
+    i = find(data{i:l,"ActivePower"}==0, 1, 'first');
 % else it is an off cycle
 else
     fprintf("File starts in the middle of an off cycle.\n");
     % Jump to the end of the cycle
-    i = i + find(data{i:l,"ActivePower"}~=0, 1, 'first');
+    i = find(data{i:l,"ActivePower"}~=0, 1, 'first');
 end
 
-%TODO: offTimes indices problem
 % Cycle
+indices = -1;
 while(i<l+1)
     % If a new day started
     if(day(currentDate)~=day(data{i,"Date"}))
@@ -91,6 +91,8 @@ while(i<l+1)
     if(data{i,"ActivePower"}>70)
         % Increment the amount of on cycles of this day
         onCycles(end) = onCycles(end) + 1;
+        % debug
+        indices(end+1) = i;
         % If the cycle occured between 22h and 8h: it was at night
         if(hour(data{i,"Date"})<8 || hour(data{i,"Date"})>22)
             nightCycles(end) = nightCycles(end) + 1;
@@ -102,16 +104,13 @@ while(i<l+1)
         % Save start index of on cycle
         idxStartOn = i;
         found = false;
+        % Prevent single 0 to be detected as off cycle
         while(not(found))
             % Jump to the end of the cycle
             i = i + find(data{i:l,"ActivePower"}==0, 1, 'first');
-            % Prevent single 0 to be detected as off cycle
-            if(data{i+1,"ActivePower"}==0)
-                %TODO: improve
-                % Cycle needs to be larger than 20min
-                if(etime(datevec(data{i,"Date"}),datevec(data{idxStartOn,"Date"}))>20*60)
-                    found = true;
-                end
+            % Check if next 200 entries are smaller than 70
+            if(all(data{i+1:10:min(max(size(data)),i+200),"ActivePower"}<70))
+                found = true;
             end
             % Do not record the cycle's duration if it does not end before the end of the data
             % find() returns empty if it does not find a result
@@ -119,7 +118,7 @@ while(i<l+1)
                 break;
             end
         end
-
+        % Do not record the cycle's duration if it does not end before the end of the data
         % find() returns empty if it does not find a result
         if(isempty(i))
             break;
@@ -137,11 +136,6 @@ while(i<l+1)
         idxStartOff = i;
         % Jump to next on cycle (greater than 70 to prevent noise detection)
         i = i + find(data{i:l,"ActivePower"}>70, 1, 'first');
-        % Do not record the cycle's duration if it does not end before the end of the data
-        % find() returns empty if it does not find a result
-        if(isempty(i))
-            break;
-        end
         % Calculate time of off cycle
         timeOff = etime(datevec(data{i,"Date"}),datevec(data{idxStartOff,"Date"}));
         % Append length to vector (row=1day;column=1st cycle)
