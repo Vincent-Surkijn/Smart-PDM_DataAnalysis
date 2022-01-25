@@ -51,6 +51,7 @@ dayCycles = 0;      % Amount of cycles during the day(8-22h)
 onCycles = 0;         % Amount of cycles in a day(24h)
 onTimes = 0;        % Lengths of on cycles
 offTimes = 0;       % Lengths of off cycles
+onPower = 0;        % Power during the on cycles
 dates(1) = currentDate;          % Save dates
 
 % Determine at what index to start(don't want to start in the middle of an
@@ -78,6 +79,7 @@ while(i<l+1)
         % Start a new element to increment in the vectors
         onTimes(end+1,end+1) = 0;
         offTimes(end+1,end+1) = 0;
+        onPower(end+1,end+1) = 0;
         onCycles(end+1) = 0;
         j = 1;
         k = 1;
@@ -126,6 +128,8 @@ while(i<l+1)
 
         % Calculate time of on cycle
         timeOn = etime(datevec(data{i,"Date"}),datevec(data{idxStartOn,"Date"}));
+        % Calculate average power during the on cycle
+        onPower(end,j) = mean(data{idxStartOn:i,"ActivePower"});
         % Append length to vector (row=1day;column=1st cycle)
         % Round it to a second because more decimal places are inaccurate
         onTimes(end,j) = round(timeOn);
@@ -156,8 +160,9 @@ end
 % onCycles
 % onTimes
 % offTimes
+% onPower
 
-% Calculate the average times without the zero values
+% Calculate the averages without zero values
 avgOnTimes = sum(onTimes');
 amount = sum(onTimes'~=0);
 % Round to a second
@@ -168,6 +173,10 @@ amount = sum(offTimes'~=0);
 % Round to a second
 avgOffTimes = round(avgOffTimes./amount);
 
+avgOnPowers = sum(onPower');
+amount = sum(onPower'~=0);
+avgOnPowers = avgOnPowers./amount;
+
 % Create features table
 features.date = dates';
 features.cycles_in_a_day = onCycles';
@@ -177,6 +186,7 @@ features.cycles_during_the_day_8to22 = dayCycles';
 features.cycles_during_the_night_22to8 = nightCycles';
 features.onTimes = onTimes;
 features.offTimes = offTimes;
+features.avgPower = avgOnPowers';
 
 % Write results to a file if a path was indicated
 if(writeFile)
