@@ -55,16 +55,16 @@ dates(1) = currentDate;          % Save dates
 
 % Determine at what index to start(don't want to start in the middle of an
 % on/off cycle)
-% If the power is greater than 70 then the file starts in the middle of an on cycle
-if(data{i,"ActivePower"}>70)
+% If the power is greater than 60 then the file starts in the middle of an on cycle
+if(data{i,"ActivePower"}>60)
     fprintf("File starts in the middle of an on cycle.\n");
-    % Jump to the end of the cycle
-    i = find(data{i:l,"ActivePower"}==0, 1, 'first');
+    % Jump to the end of the on cycle
+    i = find(data{i:l,"ActivePower"}<=60, 1, 'first');
 % else it is an off cycle
 else
     fprintf("File starts in the middle of an off cycle.\n");
-    % Jump to the end of the cycle
-    i = find(data{i:l,"ActivePower"}~=0, 1, 'first');
+    % Jump to the end of the off cycle
+    i = find(data{i:l,"ActivePower"}>=70, 1, 'first');
 end
 
 % Cycle
@@ -107,7 +107,7 @@ while(i<l+1)
         % Prevent single 0 to be detected as off cycle
         while(not(found))
             % Jump to the end of the cycle
-            i = i + find(data{i:l,"ActivePower"}==0, 1, 'first');
+            i = i + find(data{i:l,"ActivePower"}<60, 1, 'first');
             % Check if next 200 entries are smaller than 70
             if(all(data{i+1:10:min(max(size(data)),i+200),"ActivePower"}<70))
                 found = true;

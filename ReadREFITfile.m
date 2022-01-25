@@ -18,8 +18,8 @@ plot(clean_data{:,"ActivePower"});
 
 %% Plot data vs time
 figure();
-% plot(clean_data{:,"Time"},clean_data{:,"ActivePower"});
-plot(clean_data{1:600000,"Date"},clean_data{1:600000,"ActivePower"});
+plot(clean_data{:,"Date"},clean_data{:,"ActivePower"});
+% plot(clean_data{1:1000000,"Date"},clean_data{1:1000000,"ActivePower"});
 title('Power vs time');ylabel('Power(W)');xlabel('Date');
 
 fprintf('Press any key to extract features from this REFIT file\n');
