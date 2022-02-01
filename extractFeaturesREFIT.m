@@ -128,8 +128,8 @@ while(i<l+1)
 
         % Calculate time of on cycle
         timeOn = etime(datevec(data{i,"Date"}),datevec(data{idxStartOn,"Date"}));
-        % Calculate average power during the on cycle
-        onPower(end,j) = mean(data{idxStartOn:i,"ActivePower"});
+        % Calculate average power during the on cycle(+10 to avoid peak)
+        onPower(end,j) = mean(data{idxStartOn+10:i,"ActivePower"});
         % Append length to vector (row=1day;column=1st cycle)
         % Round it to a second because more decimal places are inaccurate
         onTimes(end,j) = round(timeOn);

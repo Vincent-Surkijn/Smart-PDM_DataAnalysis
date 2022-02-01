@@ -6,9 +6,10 @@
 %% Initialization
 clear ; close all; clc
 % Enter the filename ending in _clean!
-filename = '240AC4514170-FastStreamStored-ID7679-2022-01-20 175418_clean';
+% filename = '240AC4514170-FastStreamStored-ID8651-2022-01-26 093142_clean';
+filename = '23NOV_512Hz_300smpnum_clean'
 % Sampling frequency (Adapt this to the frequency the data was gathered at)
-Fs = 2048
+Fs = 512
 
 %% =========== Part 1: Loading Data =============
 % We start by loading the data
@@ -57,8 +58,9 @@ fprintf('Plotting power/RMS, kurtosis and skewness of the current.\n');
 % % 230V is the outlet voltage amplitude in Portugal
 % voltage = 230;
 % % so the sine wave looks like this
-% tx = 1:max(size(data));
-% voltageWave = voltage*sin(tx);
+% tx = 0:max(size(data)-1);
+% % 50Hz net
+% voltageWave = voltage*sin((2*pi*50)*tx);
 % % which make the RMS of the voltage
 % voltageRMS = rms(voltageWave);
 
@@ -67,9 +69,9 @@ j = 1;
 l = size(data);
 while(i<l(1)+1)
     %calculate per 0.1s interval
-    current_rms(j) = rms(data{i:min(i+round(0.5*Fs),l),"Current"});
-    kurt(j) = kurtosis(data{i:min(i+round(0.5*Fs),l),"Current"});
-    skew(j) = skewness(data{i:min(i+round(0.5*Fs),l),"Current"});
+    current_rms(j) = rms(data{i:min(i+round(0.1*Fs),l),"Current"});
+    kurt(j) = kurtosis(data{i:min(i+round(0.1*Fs),l),"Current"});
+    skew(j) = skewness(data{i:min(i+round(0.1*Fs),l),"Current"});
 %     if(kurt(j)>150)
 %         fprintf('%d\n',i)
 %     end
@@ -109,8 +111,8 @@ j = 1;
 l = size(data);
 while(i<l(1)+1)
     %calculate per 0.1s interval
-    kurt(j) = kurtosis(data{i:min(i+round(0.5*Fs),l),"Vibration"});
-    skew(j) = skewness(data{i:min(i+round(0.5*Fs),l),"Vibration"});
+    kurt(j) = kurtosis(data{i:min(i+round(0.1*Fs),l),"Vibration"});
+    skew(j) = skewness(data{i:min(i+round(0.1*Fs),l),"Vibration"});
     i = i + round(0.1*Fs);
     j = j + 1;
 end
@@ -141,16 +143,17 @@ display(Fs);
 avgVibr = mean(data{:,"Vibration"});
 freq_data = data{:,"Vibration"} - avgVibr;
 
-% Select what part of the data to use(do the same for the current!)
-x = flip(freq_data);
-% x = flip(data{650000:1750000,"Vibration"});  % On cycle (29NOV)
+%----------------- Select what part of the data to use(do the same for the current!)
+% x = flip(freq_data);
+x = flip(data{1:40000,"Vibration"});  % On cycle
+x = flip(data{20000:875000,"Vibration"});  % On cycle (23NOV)
 
 % number of samples
 n = length(x);
 % fourier transform of signal
 Y = fft(x);
 % Remove lower frequencies(up until threshold)
-threshold = 4;
+threshold = 2
 Y(1:round(threshold*(n/Fs)))=0;
 % Remove lower frequencies(double-sided spectrum)
 Y(max(round(size(Y)-threshold*(n/Fs):size(Y)),1))=0;
@@ -167,6 +170,7 @@ power = abs(Y).^2/n;
 fprintf('Max frequencies found in vibrations in descending order:\n');
 fprintf('%1.1fHz\n',LOCS.*(Fs/n));
 
+
 % figure(6)
 % plot(f,power);
 % title('Frequency spectrum Vibration');
@@ -177,12 +181,39 @@ y0 = fftshift(Y);         % shift y values
 f0 = (-n/2:n/2-1)*(Fs/n); % 0-centered frequency range
 power0 = abs(y0).^2/n;    % 0-centered power
 
+% OFF cycle
+    x = flip(freq_data(1000000:2500000));  % On cycle (23NOV)
+%     number of samples
+    n = length(x);
+%     fourier transform of signal
+    Y_off = fft(x);
+%     Remove lower frequencies(up until threshold)
+    threshold = 2
+    Y_off(1:round(threshold*(n/Fs)))=0;
+%     Remove lower frequencies(double-sided spectrum)
+    Y_off(max(round(size(Y_off)-threshold*(n/Fs):size(Y_off)),1))=0;
+%     frequency range
+    f = (0:n-1)*(Fs/n);
+%     power of the DFT
+    power_off = abs(Y_off).^2/n;
+    y0_off = fftshift(Y_off);         % shift y values
+    f0_off = (-n/2:n/2-1)*(Fs/n); % 0-centered frequency range
+    power0_off = abs(y0_off).^2/n;    % 0-centered power
+
 
 figure(7)
 plot(f0,power0)
 title('Double-sided Frequency spectrum Vibration');
 xlabel('Frequency (Hz)')
 ylabel('Power')
+hold on;
+yyaxis right
+plot(f0_off,power0_off)
+hold off;
+legend('Spectrum on cycle','Spectrum off cycle','Location','southoutside')
+
+% figure(13)
+% plot(f0,mag2db(y0));
 
 %Current
 %file_Tiago
@@ -190,12 +221,10 @@ ylabel('Power')
 avgCurrent = mean(data{:,"Current"});
 data{:,"Current"} = data{:,"Current"} - avgCurrent;
 
-% Select what part of the data to use
-x = flip(data{:,"Current"});
-% x = flip(data{56000:56400,"Current"});  % Small peak at start On cycle (file_Tiago)
-% x = flip(data{55000:55800,"Current"});  % 1st part On cycle (file_Tiago)
-% x = flip(data{20000:30000,"Current"});  % 2nd part On cycle (file_Tiago)
-% x = flip(data{80000:100000,"Current"});  % Off cycle (file_Tiago)
+%---------------- Select what part of the data to use
+% x = flip(data{:,"Current"});
+% x = flip(data{1:40000,"Current"});  % On cycle
+x = flip(data{20000:875000,"Current"});  % On cycle (23NOV)
 
 Y = fft(x);
 Y2 = Y;
@@ -224,11 +253,17 @@ title('Double-sided Frequency spectrum Current');
 xlabel('Frequency (Hz)')
 ylabel('Power')
 
+% figure(14)
+% plot(f0,mag2db(y0));
+
 figure(10)
 plot(f0,power0_2)
 title('Double-sided Frequency spectrum Current without 50Hz component');
 xlabel('Frequency (Hz)')
 ylabel('Power')
+
+% figure(15)
+% plot(f0,mag2db(y0_2));
 
 fprintf('Press any key to also plot a Time-Frequency analysis of the current and vibration.\n');
 pause;

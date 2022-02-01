@@ -11,6 +11,8 @@ data = ...
 clean_data = table();
 clean_data.Date = data.Time;
 clean_data.ActivePower = data.Appliance1;   %Fill in the correct appliance number here
+
+fprintf('Done reading\n');
 %% Plot data
 figure();
 plot(clean_data{:,"ActivePower"});
@@ -18,14 +20,14 @@ plot(clean_data{:,"ActivePower"});
 
 %% Plot data vs time
 figure();
-plot(clean_data{:,"Date"},clean_data{:,"ActivePower"});
-% plot(clean_data{1:1000000,"Date"},clean_data{1:1000000,"ActivePower"});
+% plot(clean_data{:,"Date"},clean_data{:,"ActivePower"});
+plot(clean_data{1000000:2000000,"Date"},clean_data{1000000:2000000,"ActivePower"});
 title('Power vs time');ylabel('Power(W)');xlabel('Date');
 
 fprintf('Press any key to extract features from this REFIT file\n');
 pause;
 %% Feature extraction
-csvpath = strcat("./Refit_files/featuresV2_",filename);
+csvpath = strcat("./Refit_files/featuresV3_",filename);
 % features = extractFeaturesREFIT(clean_data(1:1000000,:),csvpath);
 features = extractFeaturesREFIT(clean_data,csvpath);
 

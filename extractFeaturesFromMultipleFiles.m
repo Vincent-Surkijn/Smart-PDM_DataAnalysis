@@ -5,10 +5,10 @@
 %% Main
 % clear; clc;
 % Enter the path to the folder followed by \*.csv (has to be between '')
-folder = '.\VPS_Software\240AC4514170\Slowstreams\Feature extraction\*.csv'
+folder = '.\VPS_Software\98F4AB08E738\Slowstreams\Feature Extraction\*.csv'
 
 % Enter the path to the file where the features will be written to
-csvpath = ".\VPS_Software\240AC4514170\featuresV2";
+csvpath = ".\VPS_Software\98F4AB08E738\featuresV3";
 
 files = subdir(folder);
 

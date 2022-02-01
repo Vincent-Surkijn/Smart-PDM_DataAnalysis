@@ -5,10 +5,10 @@
 
 %% Initialization
 clear ; close all; clc
-% currentFactor = 0.010989 %same as previous sensor
-% vibrFactor = 6.8439e-06 %0.000007900599(previous)
-filepath = 'VPS_Software\240AC4514170\20_01_2022\';
-filename = '240AC4514170-FastStreamStored-ID7679-2022-01-20 175418';
+currentFactor = 0.010989 %same as previous sensor
+vibrFactor = 6.8439e-06 %0.000007900599(previous)
+filepath = 'VPS_Software\240AC4514170\2022_01_26\';
+filename = '240AC4514170-FastStreamStored-ID8651-2022-01-26 093142';
 % Choose to apply a low pass filter or not
 applyLPF = false
 
@@ -31,8 +31,8 @@ clean_data = sortrows(clean_data,"Unix",'descend');
 clean_data.Instance = datetime(clean_data.Unix,'ConvertFrom','epochtime','TicksPerSecond',1e6,'Format','dd-MMM-yyyy HH:mm:ss.SSSSSSSSS');
 
 % Multiply the factors
-% clean_data{:,"Current"} = clean_data{:,"Current"}*currentFactor;
-% clean_data{:,"Vibration"} = clean_data{:,"Vibration"}*vibrFactor;
+clean_data{:,"Current"} = clean_data{:,"Current"}*currentFactor;
+clean_data{:,"Vibration"} = clean_data{:,"Vibration"}*vibrFactor;
 
 % Subtract the average current
 avgCurrent = mean(clean_data{:,"Current"});

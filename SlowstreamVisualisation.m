@@ -6,8 +6,8 @@
 %% Initialization
 clear ; close all; clc
 % Enter the filename ending in _clean!
-filename = '21_12_20 - 21_12_26';
-filepath = 'VPS_Software\240AC4514170\Slowstreams\';
+filename = '21_9_6 - 21_9_12';
+filepath = 'VPS_Software\98F4AB08E738\Slowstreams\';
 
 %% =========== Part 1: Loading Data =============
 % We start by loading the data
