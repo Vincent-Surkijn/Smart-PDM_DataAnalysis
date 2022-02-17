@@ -6,7 +6,7 @@
 clear ; close all; clc
 % ENTER the filename ending in _clean!
 filename = '98F4AB08E738-FastStreamStored-ID2492-2021-12-14 045858_clean';
-% filename = '2DEC_512Hz_300smpnum_clean';
+% filename = '20NOV_128Hz_300smpnum2_clean';
 % ENTER the sampling frequency
 Fs = 2048;
 
@@ -43,14 +43,19 @@ title('Template'); ylabel('Current(A)');xlabel('Sample number'); set(gca, 'XDir'
 sp(2) = subplot(2,1,2); plot(signal{:,"Current"}); title(string(filename)); ylabel('Current(A)'); xlabel('Sample number');set(gca, 'XDir','reverse');
 
 %% =========== Part 3: Calculating & Visualising Correlation =============
+% Measure the time that the function takes
+tic
+% Calculate cross-correlation
 [C1,lag1] = xcorr(flip(template),flip(signal{:,"Current"})); 
 
 figure(2);
 plot(lag1/Fs,C1); ylabel('Amplitude'); xlabel('Time (s)'); title('Cross-correlation between Template and Signal')
 
-% Find all peaks in the cross-correlation that are at least 10s apart and
+% Find all peaks in the cross-correlation that are at least 5s apart and
 % bigger than 10 times the rms of the correlation
-[~,LOCS] = findpeaks(C1,'MinPeakHeight',10*rms(C1),'MinPeakDistance',(10*Fs));
+[~,LOCS] = findpeaks(C1,'MinPeakHeight',7*rms(C1),'MinPeakDistance',(5*Fs));
+% Measure the time that the function takes
+toc
 
 % Plot peaks if there are any
 if(size(LOCS) > 0)% if peaks founds
@@ -58,7 +63,7 @@ if(size(LOCS) > 0)% if peaks founds
     plot(signal{:,"Current"});
     hold on;
     plot(LOCS,signal{LOCS,"Current"},'o','MarkerSize',5);
-    title('Start(s) of on cycle(s) detected via cross-correlation method');
+    title('Start(s) of on cycle(s) detected');
     set(gca, 'XDir','reverse');
 else
     % Just take the biggest peak
@@ -73,6 +78,6 @@ else
     plot(signal{:,"Current"});
     hold on;
     plot(LOCS,signal{LOCS,"Current"},'o','MarkerSize',5);
-    title('Start(s) of on cycle(s) detected via cross-correlation method');
+    title('Start(s) of on cycle(s) detected');
     set(gca, 'XDir','reverse');
 end

@@ -21,6 +21,8 @@ function [indices1,ts,value] = detectOnCycle(data,varargin)
 %                   |           ...                       ...          ...    |
 
 
+% Measure the time that the function takes
+tic
 if(nargin>2)
     error('This function should only be used with 1 or 2 input arguments\n');
 elseif(nargin==1)
@@ -36,38 +38,40 @@ value = zeros(1,1);
 flipped = flip(data{:,"Current"});
 flipped2 = flip(data{:,"Vibration"});
 
-
+flipped = flip(data{:,"Current"});
 % Find all peaks bigger than 10 times the average rms and at least 5s apart
-[~,LOCS] = findpeaks(flipped,'MinPeakHeight',(rms(data{:,"Current"}))*10,'MinPeakDistance',(5*fs));
-
-% Plot peaks if there are any
-if(size(LOCS) > 0)% if peaks founds
-    figure;
-    plot(flipped);
-    hold on;
-    plot(LOCS,flipped(LOCS),'o','MarkerSize',5);
-    title('Start(s) of on cycle(s) detected via findpeaks method');
-else     % if no peaks founds
-    fprintf('No start(s) of on cycle(s) found with findpeaks method\n');
-    indices1 = -1;
-    value = -1;
-    ts = -1;
-    % check if the end of an on cycle was detected
-    ipt = findchangepts(flipped,'Statistic','rms');
-    % compare rms  from 5min=300s until 5s before and from 5s until 5min=300s after the change
-    rms_before = rms(flipped( max(ipt-(300*fs),1): min(ipt+(5*fs),l(1))));
-    rms_after = rms(flipped( min(ipt+(5*fs),l(1)): min(ipt+(300*fs),l(1)) ));
-    % check if the change is sufficiently high to indicate the end of an on cycle
-    if( rms_before >= rms_after*5 )
-        fprintf('Only the end of the on cycle is captured!\n');
-        fprintf('End of cycle at index %d\n',ipt);
-        display(data{l(1)-ipt,"Instance"});  % print the timestamp
-    else    
-        %TODO: differentiate between on and off cycle
-        fprintf('No change of cycles detected!\n');
-    end
-    return;
-end
+[~,LOCS] = findpeaks(flipped,'MinPeakHeight', ...
+    (rms(data{:,"Current"}))*10, ...
+    'MinPeakDistance',(5*fs));
+% 
+% % Plot peaks if there are any
+% if(size(LOCS) > 0)% if peaks founds
+%     figure;
+%     plot(flipped);
+%     hold on;
+%     plot(LOCS,flipped(LOCS),'o','MarkerSize',5);
+%     title('Start(s) of on cycle(s) detected via findpeaks method');
+% else     % if no peaks founds
+%     fprintf('No start(s) of on cycle(s) found with findpeaks method\n');
+%     indices1 = -1;
+%     value = -1;
+%     ts = -1;
+%     % check if the end of an on cycle was detected
+%     ipt = findchangepts(flipped,'Statistic','rms');
+%     % compare rms  from 5min=300s until 5s before and from 5s until 5min=300s after the change
+%     rms_before = rms(flipped( max(ipt-(300*fs),1): min(ipt+(5*fs),l(1))));
+%     rms_after = rms(flipped( min(ipt+(5*fs),l(1)): min(ipt+(300*fs),l(1)) ));
+%     % check if the change is sufficiently high to indicate the end of an on cycle
+%     if( rms_before >= rms_after*5 )
+%         fprintf('Only the end of the on cycle is captured!\n');
+%         fprintf('End of cycle at index %d\n',ipt);
+%         display(data{l(1)-ipt,"Instance"});  % print the timestamp
+%     else    
+%         %TODO: differentiate between on and off cycle
+%         fprintf('No change of cycles detected!\n');
+%     end
+%     return;
+% end
 
 
 % Compare rms of current before and after peak
@@ -77,29 +81,30 @@ len = size(LOCS);
 while(i < len(1)+1)
     % check if the rms increases after the initial peak
     % peak is over after 3s ==> 3*fs samples further
-    % take a sufficient chunk(5min/300s) of the running cycle
+    % take a sufficient part(5min=300s) of the running cycle
     start = min(LOCS(i)+(3*fs),l(1));
     stop = min(LOCS(i)+300*fs,l(1));
     % check rms of the off cycle(from 5min before until 3 seconds before)
-    rms_offCycle = rms(flipped( max(LOCS(i)-(300*fs),1):max(LOCS(i)-3*fs,1)));
-    if( (rms(flipped( start:stop )) >= (5*rms_offCycle)) && rms_offCycle~= 0)
+    rms_offCycle = ...
+        rms(flipped( max(LOCS(i)-(300*fs),1):max(LOCS(i)-3*fs,1)));
+    if( (rms(flipped( start:stop )) >= ...
+            (5*rms_offCycle)) && rms_offCycle~= 0)
         indices1(j) = LOCS(i);
-%         value(j) = flipped(LOCS(i));
         j = j + 1;
     end
     i = i + 1;
 end
 
 % Plot peaks if there are any
-if(indices1(1) ~= 0)
-    figure;
-    plot(flipped);
-    hold on;
-    plot(indices1,flipped(indices1),'o','MarkerSize',5);
-    title('Start(s) of on cycle(s) detected via combined method');
-else
-    fprintf('No start(s) of on cycle(s) found with combined method\n');
-end
+% if(indices1(1) ~= 0)
+%     figure;
+%     plot(flipped);
+%     hold on;
+%     plot(indices1,flipped(indices1),'o','MarkerSize',5);
+%     title('Start(s) of on cycle(s) detected via combined method');
+% else
+%     fprintf('No start(s) of on cycle(s) found with combined method\n');
+% end
 
 
 % Compare rms of vibration before and after peak
@@ -110,7 +115,8 @@ indices = zeros(1,1);
 while(i < max(len)+1 && indices1(1) ~= 0)
     % all vibrations stronger than 1.0E-04 are not noise
     threshold = 0.0001;
-    if( rms(flipped2( indices1(i):min(indices1(i)+300*fs,l(1)-3*fs )))>=threshold)
+    if( rms(flipped2( indices1(i):min(indices1(i)+300*fs,l(1)-3*fs ))) ...
+            >=threshold)
         indices(j) = indices1(i);
         value(j) = flipped2(indices1(i));
         j = j + 1;
@@ -151,32 +157,34 @@ while(i<max(len)+1)
     i = i + 1;
 end
 
-% Plot peaks if there are any
-if(indices(1) ~= 0)
-    figure;
-    % Plot current
-    subplot(2,1,1);
-    plot(flipped);
-    hold on;
-    plot(indices,flipped(indices),'o','MarkerSize',5);
-    title('Start(s) of on cycle(s) detected via ultra combined method');
-    if(end_cycle(1) ~= 0)
-        hold on;
-        xline(end_cycle,'-g');
-    end
-    % Plot vibration
-    subplot(2,1,2);
-    plot(flipped2);
-    hold on;
-    plot(indices,flipped2(indices),'o','MarkerSize',5);
-    title('Start(s) of on cycle(s) detected via ultra combined method');
-    if(end_cycle(1) ~= 0)
-        hold on;
-        xline(end_cycle,'-g');
-    end
-else
-    fprintf('No start(s) of on cycle(s) found with ultra combined method\n');
-end
+% % Plot peaks if there are any
+% if(indices(1) ~= 0)
+%     figure;
+%     % Plot current
+%     subplot(2,1,1);
+%     plot(flipped);
+%     axis tight;
+%     hold on;
+%     plot(indices,flipped(indices),'o','MarkerSize',5);
+%     title('Start(s) of on cycle(s) detected');
+%     if(end_cycle(1) ~= 0)
+%         hold on;
+%         xline(end_cycle,'-g');
+%     end
+%     % Plot vibration
+%     subplot(2,1,2);
+%     plot(flipped2);
+%     axis tight;
+%     hold on;
+%     plot(indices,flipped2(indices),'o','MarkerSize',5);
+%     title('Start(s) of on cycle(s) detected');
+%     if(end_cycle(1) ~= 0)
+%         hold on;
+%         xline(end_cycle,'-g');
+%     end
+% else
+%     fprintf('No start(s) of on cycle(s)\n');
+% end
 
 % return variables
 % Do (size - indices) because data is flipped for calculations
@@ -186,3 +194,6 @@ end
 l = size(data);
 indices1 = l(1) - indices1;
 ts = data{indices1,"Instance"};
+
+% Measure the time that the function takes
+toc

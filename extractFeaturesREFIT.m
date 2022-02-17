@@ -111,10 +111,12 @@ while(i<l+1)
             % Jump to the end of the cycle
             i = i + find(data{i:l,"ActivePower"}<60, 1, 'first');
             % Check if next 200 entries are smaller than 70
-            if(all(data{i+1:10:min(max(size(data)),i+200),"ActivePower"}<70))
+            if(all(data{i+1:10:min(max(size(data)),i+200), ...
+                    "ActivePower"}<70))
                 found = true;
             end
-            % Do not record the cycle's duration if it does not end before the end of the data
+            % Do not record the cycle's duration if it does not end before 
+            % the end of the data
             % find() returns empty if it does not find a result
             if(isempty(i))
                 break;

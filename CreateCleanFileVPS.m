@@ -7,8 +7,8 @@
 clear ; close all; clc
 currentFactor = 0.010989 %same as previous sensor
 vibrFactor = 6.8439e-06 %0.000007900599(previous)
-filepath = 'VPS_Software\240AC4514170\2022_01_26\';
-filename = '240AC4514170-FastStreamStored-ID8651-2022-01-26 093142';
+filepath = 'VPS_Software\98F4AB08E7C4\2022_02_03\';
+filename = 'SmartPDM_98F4AB08E7C4-FastStreamSnapshot-2022-02-03 162447 (test)';
 % Choose to apply a low pass filter or not
 applyLPF = false
 

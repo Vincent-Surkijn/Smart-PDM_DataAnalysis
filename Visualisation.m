@@ -6,10 +6,10 @@
 %% Initialization
 clear ; close all; clc
 % Enter the filename ending in _clean!
-% filename = '240AC4514170-FastStreamStored-ID8651-2022-01-26 093142_clean';
-filename = '23NOV_512Hz_300smpnum_clean'
+filename = '240AC4514170-FastStreamStored-ID8651-2022-01-26 093142_clean';
 % Sampling frequency (Adapt this to the frequency the data was gathered at)
-Fs = 512
+Fs = 2048
+VPS = true
 
 %% =========== Part 1: Loading Data =============
 % We start by loading the data
@@ -144,16 +144,16 @@ avgVibr = mean(data{:,"Vibration"});
 freq_data = data{:,"Vibration"} - avgVibr;
 
 %----------------- Select what part of the data to use(do the same for the current!)
-% x = flip(freq_data);
-x = flip(data{1:40000,"Vibration"});  % On cycle
-x = flip(data{20000:875000,"Vibration"});  % On cycle (23NOV)
+x = flip(freq_data);
+% x = flip(data{1:40000,"Vibration"});  % On cycle
+% x = flip(data{20000:875000,"Vibration"});  % On cycle (23NOV)
 
 % number of samples
 n = length(x);
 % fourier transform of signal
 Y = fft(x);
 % Remove lower frequencies(up until threshold)
-threshold = 2
+threshold = 2;
 Y(1:round(threshold*(n/Fs)))=0;
 % Remove lower frequencies(double-sided spectrum)
 Y(max(round(size(Y)-threshold*(n/Fs):size(Y)),1))=0;
@@ -162,7 +162,7 @@ f = (0:n-1)*(Fs/n);
 % power of the DFT
 power = abs(Y).^2/n;
 % Print top 5 frequencies in the vibration spectrum
-[value,LOCS]= findpeaks(power(1:round(n/2)),...                    % Don't check mirrored frequencies
+[value,LOCS]= findpeaks(power(1:round(n/2)),...             % Don't check mirrored frequencies
                             'MinPeakDistance',10*(n/Fs), ...  % At least 10Hz apart
                             'sortstr','descend',...         % Sort in descending order
                             'NPeaks',5 ...                  % Take the top 5
@@ -171,34 +171,39 @@ fprintf('Max frequencies found in vibrations in descending order:\n');
 fprintf('%1.1fHz\n',LOCS.*(Fs/n));
 
 
-% figure(6)
-% plot(f,power);
-% title('Frequency spectrum Vibration');
-% xlabel('Frequency (Hz)');
-% ylabel('Power');
+figure(6)
+if(VPS)
+    meanfreq(freq_data,Fs*(50.4/46.8));   % "Resample"
+else
+    meanfreq(freq_data,Fs);
+end
+title('PSD and Mean frequency of the Vibration');
 
 y0 = fftshift(Y);         % shift y values
 f0 = (-n/2:n/2-1)*(Fs/n); % 0-centered frequency range
+if(VPS)
+    f0=f0.*(50.4/46.8);   % "Resample"
+end
 power0 = abs(y0).^2/n;    % 0-centered power
 
-% OFF cycle
-    x = flip(freq_data(1000000:2500000));  % On cycle (23NOV)
-%     number of samples
-    n = length(x);
-%     fourier transform of signal
-    Y_off = fft(x);
-%     Remove lower frequencies(up until threshold)
-    threshold = 2
-    Y_off(1:round(threshold*(n/Fs)))=0;
-%     Remove lower frequencies(double-sided spectrum)
-    Y_off(max(round(size(Y_off)-threshold*(n/Fs):size(Y_off)),1))=0;
-%     frequency range
-    f = (0:n-1)*(Fs/n);
-%     power of the DFT
-    power_off = abs(Y_off).^2/n;
-    y0_off = fftshift(Y_off);         % shift y values
-    f0_off = (-n/2:n/2-1)*(Fs/n); % 0-centered frequency range
-    power0_off = abs(y0_off).^2/n;    % 0-centered power
+% % OFF cycle (Uncomment this to plot off and on cycle spectrum of vibr)
+%     x = flip(freq_data(60000:100000));  % Off cycle
+% %     number of samples
+%     n = length(x);
+% %     fourier transform of signal
+%     Y_off = fft(x);
+% %     Remove lower frequencies(up until threshold)
+%     threshold = 2
+%     Y_off(1:round(threshold*(n/Fs)))=0;
+% %     Remove lower frequencies(double-sided spectrum)
+%     Y_off(max(round(size(Y_off)-threshold*(n/Fs):size(Y_off)),1))=0;
+% %     frequency range
+%     f = (0:n-1)*(Fs/n);
+% %     power of the DFT
+%     power_off = abs(Y_off).^2/n;
+%     y0_off = fftshift(Y_off);         % shift y values
+%     f0_off = (-n/2:n/2-1)*(Fs/n); % 0-centered frequency range
+%     power0_off = abs(y0_off).^2/n;    % 0-centered power
 
 
 figure(7)
@@ -206,11 +211,12 @@ plot(f0,power0)
 title('Double-sided Frequency spectrum Vibration');
 xlabel('Frequency (Hz)')
 ylabel('Power')
-hold on;
-yyaxis right
-plot(f0_off,power0_off)
-hold off;
-legend('Spectrum on cycle','Spectrum off cycle','Location','southoutside')
+% % (Uncomment this to plot off and on cycle spectrum of vibr)
+% hold on;
+% yyaxis right
+% plot(f0_off,power0_off)
+% hold off;
+% legend('Spectrum on cycle','Spectrum off cycle','Location','southoutside')
 
 % figure(13)
 % plot(f0,mag2db(y0));
@@ -222,9 +228,10 @@ avgCurrent = mean(data{:,"Current"});
 data{:,"Current"} = data{:,"Current"} - avgCurrent;
 
 %---------------- Select what part of the data to use
-% x = flip(data{:,"Current"});
+x = flip(data{:,"Current"});
+x = bandstop(x,[45 55],Fs);
 % x = flip(data{1:40000,"Current"});  % On cycle
-x = flip(data{20000:875000,"Current"});  % On cycle (23NOV)
+% x = flip(data{20000:875000,"Current"});  % On cycle (23NOV)
 
 Y = fft(x);
 Y2 = Y;
@@ -235,15 +242,20 @@ n = length(x);          % number of samples
 f = (0:n-1)*(Fs/n);     % frequency range
 power = abs(Y).^2/n;    % power of the DFT
 
-% figure(8)
-% plot(f,power);
-% title('Frequency spectrum Current');
-% xlabel('Frequency (Hz)');
-% ylabel('Power');
+figure(8)
+if(VPS)
+    meanfreq(x,Fs*(50.4/46.8));   % "Resample"
+else
+    meanfreq(x,Fs);
+end
+title('PSD and Mean frequency of the Current');
 
 y0 = fftshift(Y);           % shift y values
 y0_2 = fftshift(Y2);        % shift y values
 f0 = (-n/2:n/2-1)*(Fs/n);   % 0-centered frequency range
+if(VPS)
+    f0=f0.*(50.4/46.8);   % "Resample"
+end
 power0 = abs(y0).^2/n;      % 0-centered power
 power0_2 = abs(y0_2).^2/n;   % 0-centered power
 
@@ -261,6 +273,26 @@ plot(f0,power0_2)
 title('Double-sided Frequency spectrum Current without 50Hz component');
 xlabel('Frequency (Hz)')
 ylabel('Power')
+% 
+% %filter 50Hz components in original signal
+% limit = 300;
+% if(VPS)
+%     limit = 1000;   %VPS faststreams have higher sample frequency
+% end
+% %Filter 50Hz (harmonics)
+% x1 = bandstop(x,[45 55],Fs);
+% x2 = bandstop(x1,[95 105],Fs);
+% x3 = bandstop(x2,[145 155],Fs);
+% x4 = bandstop(x3,[195 205],Fs);
+% x5 = bandstop(x4,[245 255],Fs);
+% figure
+% if(VPS)
+%     meanfreq(x5,Fs*(50.4/46.8));   % "Resample"
+% else
+%     meanfreq(x5,Fs);
+% end
+% title('PSD and Mean frequency of the Current without 50Hz components');
+
 
 % figure(15)
 % plot(f0,mag2db(y0_2));
@@ -270,29 +302,25 @@ pause;
 %% Time-Frequency analysis
 fprintf('Plotting Time-Frequency analysis. (Did you change the sample frequency accordingly?)\n');
 display(Fs);
-% Using Continuous Wavelet Transform
+% % Continuous Wavelet Transform
 % % current
-% [cfs,frq] = cwt(flip(data{:,2}),Fs);
-% tms = (0:numel(data{:,2})-1)/Fs;
+% [cfs,frq] = cwt(flip(data{:,"Current"}),Fs);
+% tms = (0:numel(data{:,"Current"})-1)/Fs;
 % %Plot scalogram&signal
 % figure(11)
 % subplot(2,1,1); 
-% % plot(tms,flip(data{:,2}))
-% plot(timeseries(flip(data{:,2}),datenum(flip(data{:,1}))))
-% axis tight
-% datetick('x','HH:MM:ss')
+% plot(flip(data{:,"Current"},datenum(flip(data{:,"Instance"}))))
 % title('Signal and Scalogram')
 % xlabel('Time')
 % ylabel('Current (A)')
 % 
 % subplot(2,1,2); 
 % surface(tms,frq,abs(cfs))
-% axis tight
 % shading flat
 % set(gca,'xticklabel',[])
 % xlabel('Time')
 % ylabel('Frequency (Hz)')
-% 
+
 % % vibration
 % [cfs,frq] = cwt(flip(data{:,3}),Fs);
 % tms = (0:numel(data{:,3})-1)/Fs;
@@ -316,18 +344,15 @@ display(Fs);
 % ylabel('Frequency (Hz)')
 
 
-% Using Short-Time Fourier Transform(faster&more lightweight)
+% Short-Time Fourier Transform
 % current
-%Plot scalogram&signal
+% Plot scalogram&signal
 figure(11)
 subplot(2,1,1); 
-% plot(tms,flip(data{:,2}))
 plot(timeseries(flip(data{:,"Current"}),datenum(flip(data{:,"Instance"}))))
-datetick('x','HH:MM:ss')
 title('Signal')
 xlabel('Time')
 ylabel('Current (A)')
-axis tight
 
 subplot(2,1,2); 
 stft(flip(data{:,"Current"}),Fs,'FrequencyRange','onesided')
